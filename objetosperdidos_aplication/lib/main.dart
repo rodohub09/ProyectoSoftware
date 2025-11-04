@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:objetosperdidos_aplication/screens/menu_login.dart';
 import 'package:objetosperdidos_aplication/pantallaInicio.dart';
 
 void main() {
@@ -10,8 +11,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: PantallaInicio()
-    );
+    return MaterialApp(home: MenuLogin());
   }
 }
