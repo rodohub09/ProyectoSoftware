@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:objetosperdidos_aplication/ejemplo.dart';
 
 class BototonesTraslado extends StatelessWidget {
   final String nombre;
