@@ -65,6 +65,7 @@ class _CrearRegistroState extends State<CrearReporte> {
           ),
           SizedBox(height: 10),
           _buildBotonCrear(),
+          SizedBox(height: 10),
         ],
       ),
     );
