@@ -31,6 +31,7 @@ class _MenuReportesState extends State<MenuReportes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Menu de Reportes'), centerTitle: true),
       body: Center(
         child: Column(
           children: [

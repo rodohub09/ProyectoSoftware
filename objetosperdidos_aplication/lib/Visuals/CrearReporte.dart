@@ -40,11 +40,17 @@ class _CrearRegistroState extends State<CrearReporte> {
         children: [
           Row(
             children: [
-              Text('Titulo del reporte:'),
+              Expanded(child: Text('Titulo del reporte:')),
               SizedBox(width: 10),
-              SizedBox(
-                width: 200,
-                child: TextField(maxLength: 50, controller: _tituloController),
+              Expanded(
+                child: TextField(
+                  maxLength: 50,
+                  controller: _tituloController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Ingrese el título',
+                  ),
+                ),
               ),
             ],
           ),
@@ -53,12 +59,16 @@ class _CrearRegistroState extends State<CrearReporte> {
           SizedBox(height: 10),
           Row(
             children: [
-              Text('Descripcion del reporte:'),
+              Expanded(child: Text('Descripcion del reporte:')),
               SizedBox(width: 10),
               Expanded(
                 child: TextField(
                   maxLength: 200,
                   controller: _descripcionController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Ingrese la descripción',
+                  ),
                 ),
               ),
             ],
@@ -78,19 +88,24 @@ class _CrearRegistroState extends State<CrearReporte> {
           children: [
             Text('Categoria:'),
             SizedBox(width: 10),
-            Wrap(
-              spacing: 8.0,
-              children: Enumfiltros.values.map((categoria) {
-                return FilterChip(
-                  label: Text(categoria.label),
-                  selected: _categoriaSeleccionada == categoria,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _categoriaSeleccionada = selected ? categoria : null;
-                    });
-                  },
-                );
-              }).toList(),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Wrap(
+                  spacing: 8.0,
+                  children: Enumfiltros.values.map((categoria) {
+                    return FilterChip(
+                      label: Text(categoria.label),
+                      selected: _categoriaSeleccionada == categoria,
+                      onSelected: (bool selected) {
+                        setState(() {
+                          _categoriaSeleccionada = selected ? categoria : null;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ],
         ),
@@ -99,19 +114,24 @@ class _CrearRegistroState extends State<CrearReporte> {
           children: [
             Text('Tipo de reporte:'),
             SizedBox(width: 10),
-            Wrap(
-              spacing: 8.0,
-              children: Tiporeporte.values.map((reporte) {
-                return FilterChip(
-                  label: Text(reporte.label),
-                  selected: _tipoReporteSeleccionado == reporte,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _tipoReporteSeleccionado = selected ? reporte : null;
-                    });
-                  },
-                );
-              }).toList(),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Wrap(
+                  spacing: 8.0,
+                  children: Tiporeporte.values.map((reporte) {
+                    return FilterChip(
+                      label: Text(reporte.label),
+                      selected: _tipoReporteSeleccionado == reporte,
+                      onSelected: (bool selected) {
+                        setState(() {
+                          _tipoReporteSeleccionado = selected ? reporte : null;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ],
         ),
@@ -151,5 +171,5 @@ class _CrearRegistroState extends State<CrearReporte> {
         _tipoReporteSeleccionado != null &&
         _tituloController.text.isNotEmpty &&
         _descripcionController.text.isNotEmpty;
-  } 
+  }
 }

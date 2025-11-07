@@ -30,7 +30,23 @@ class _MenuInicialState extends State<MenuInicial> {
             ),
             SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text("Mapa Zonas de Control"),
+                      content: Image.asset('assets/image/mapaUDEC.png'), 
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text("Cerrar"),
+                        ),
+                      ],
+                    );
+                  },
+                );},
               child: Text("Mapa Zonas de control de objetos"),
             ),
           ],
