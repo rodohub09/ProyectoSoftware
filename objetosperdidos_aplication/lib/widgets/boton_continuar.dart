@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:objetosperdidos_aplication/screens/menu_inicial.dart';
+import 'package:objetosperdidos_aplication/Visuals/MenuReportes.dart';
+
 
 class BotonContinuar extends StatelessWidget {
   const BotonContinuar({super.key});
@@ -19,7 +20,7 @@ class BotonContinuar extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const MenuInicial()),
+            MaterialPageRoute(builder: (context) => const MenuReportes()),
           );
         },
         child: const Text(

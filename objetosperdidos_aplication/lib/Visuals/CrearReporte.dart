@@ -12,7 +12,8 @@ class CrearReporte extends StatefulWidget {
 
 class _CrearRegistroState extends State<CrearReporte> {
   Enumfiltros? _categoriaSeleccionada;
-  Tiporeporte? _tipoReporteSeleccionado;
+  String? _subcategoriaSeleccionada;
+  Tiporeporte? _tiporeporte;
   final TextEditingController _tituloController = TextEditingController();
   final TextEditingController _descripcionController = TextEditingController();
 
@@ -38,9 +39,9 @@ class _CrearRegistroState extends State<CrearReporte> {
     return Center(
       child: Column(
         children: [
+          SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: Text('Titulo del reporte:')),
               SizedBox(width: 10),
               Expanded(
                 child: TextField(
@@ -48,10 +49,11 @@ class _CrearRegistroState extends State<CrearReporte> {
                   controller: _tituloController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    hintText: 'Ingrese el título',
+                    labelText: 'Título del reporte',
                   ),
                 ),
               ),
+              SizedBox(width: 10)
             ],
           ),
           SizedBox(height: 10),
@@ -59,7 +61,6 @@ class _CrearRegistroState extends State<CrearReporte> {
           SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: Text('Descripcion del reporte:')),
               SizedBox(width: 10),
               Expanded(
                 child: TextField(
@@ -67,10 +68,11 @@ class _CrearRegistroState extends State<CrearReporte> {
                   controller: _descripcionController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    hintText: 'Ingrese la descripción',
+                    labelText: 'Descripción del objeto',
                   ),
                 ),
               ),
+              SizedBox(width: 10)
             ],
           ),
           SizedBox(height: 10),
@@ -86,6 +88,7 @@ class _CrearRegistroState extends State<CrearReporte> {
       children: [
         Row(
           children: [
+            SizedBox(width: 10),
             Text('Categoria:'),
             SizedBox(width: 10),
             Expanded(
@@ -100,6 +103,8 @@ class _CrearRegistroState extends State<CrearReporte> {
                       onSelected: (bool selected) {
                         setState(() {
                           _categoriaSeleccionada = selected ? categoria : null;
+                          _subcategoriaSeleccionada =
+                              null;
                         });
                       },
                     );
@@ -107,34 +112,42 @@ class _CrearRegistroState extends State<CrearReporte> {
                 ),
               ),
             ),
+            SizedBox(width: 10)
           ],
         ),
         SizedBox(height: 10),
-        Row(
-          children: [
-            Text('Tipo de reporte:'),
-            SizedBox(width: 10),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Wrap(
-                  spacing: 8.0,
-                  children: Tiporeporte.values.map((reporte) {
-                    return FilterChip(
-                      label: Text(reporte.label),
-                      selected: _tipoReporteSeleccionado == reporte,
-                      onSelected: (bool selected) {
-                        setState(() {
-                          _tipoReporteSeleccionado = selected ? reporte : null;
-                        });
-                      },
-                    );
-                  }).toList(),
+        if (_categoriaSeleccionada != null)
+          Row(
+            children: [
+              SizedBox(width: 10),
+              Text('Subcategoría:'),
+              SizedBox(width: 10),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Wrap(
+                    spacing: 8.0,
+                    children: (subfiltros[_categoriaSeleccionada] ?? []).map((
+                      subcategoria,
+                    ) {
+                      return ChoiceChip(
+                        label: Text(subcategoria),
+                        selected: _subcategoriaSeleccionada == subcategoria,
+                        onSelected: (bool selected) {
+                          setState(() {
+                            _subcategoriaSeleccionada = selected
+                                ? subcategoria
+                                : null;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+              SizedBox(width: 10)
+            ],
+          ),
       ],
     );
   }
@@ -147,9 +160,10 @@ class _CrearRegistroState extends State<CrearReporte> {
             titulo: _tituloController.text,
             descripcion: _descripcionController.text,
             categoria: _categoriaSeleccionada!,
-            tipoReporte: _tipoReporteSeleccionado!,
+            subcategoria: _subcategoriaSeleccionada!,
+            tipoReporte: _tiporeporte!,
           );
-          ReportesManager().addReporte(nuevoReporte);
+          //ReportesManager().addReporte(nuevoReporte);
           Navigator.pop(context);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +182,7 @@ class _CrearRegistroState extends State<CrearReporte> {
 
   bool esFormularioValido() {
     return _categoriaSeleccionada != null &&
-        _tipoReporteSeleccionado != null &&
+        _subcategoriaSeleccionada != null &&
         _tituloController.text.isNotEmpty &&
         _descripcionController.text.isNotEmpty;
   }

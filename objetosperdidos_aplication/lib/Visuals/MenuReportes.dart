@@ -3,7 +3,6 @@ import 'package:objetosperdidos_aplication/Models/Reportes.dart';
 import 'package:objetosperdidos_aplication/Utils/enumFiltros.dart';
 import 'package:objetosperdidos_aplication/Utils/tipoReporte.dart';
 import 'package:objetosperdidos_aplication/Visuals/CrearReporte.dart';
-import 'package:objetosperdidos_aplication/Visuals/DetallesReporte.dart';
 
 class MenuReportes extends StatefulWidget {
   const MenuReportes({super.key});
@@ -31,7 +30,34 @@ class _MenuReportesState extends State<MenuReportes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Menu de Reportes'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('Menu de Reportes'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("Mapa Zonas de Control"),
+                    content: Image.asset('assets/image/mapaUDEC.png'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text("Cerrar"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: Text("Zonas de control"),
+          ),
+        ],
+        centerTitle: true,
+      ),
       body: Center(
         child: Column(
           children: [
@@ -43,9 +69,7 @@ class _MenuReportesState extends State<MenuReportes> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const CrearReporte(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const CrearReporte()),
                 ).then((_) => setState(() {}));
               },
               child: Text('Crear Nuevo Reporte'),
@@ -147,46 +171,34 @@ class _MenuReportesState extends State<MenuReportes> {
   Widget _buildCardReporte(Reportes reporte) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetallesReporte(reporte: reporte),
-            ),
-          );
-        },
-        child: Card(
-          color: reporte.tipoReporte == Tiporeporte.perdido
-              ? Colors.orangeAccent.shade100
-              : Colors.blueAccent.shade100,
-          elevation: 4.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  reporte.titulo,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  reporte.categoria.label,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  'Fecha: 2024-01-01',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
+      child: Card(
+        color: reporte.tipoReporte == Tiporeporte.perdido
+            ? Colors.orangeAccent.shade100
+            : Colors.blueAccent.shade100,
+        elevation: 4.0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                reporte.titulo,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                reporte.categoria.label,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                'Fecha: 2024-01-01',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
           ),
         ),
       ),
