@@ -99,7 +99,13 @@ class _VentanaRegistroState extends State<VentanaRegistro> {
           ),
           const SizedBox(height: 30),
 
-          const BotonRegistrarse(),
+          BotonRegistrarse(
+            userIdController: _matriculaController,
+            userNameController: _usuarioController,
+            userEmailController: _correoController,
+            userPasswordController: _passwordController,
+            userRutController: _rutController,
+          ),
           const SizedBox(height: 15),
 
           TextButton(
