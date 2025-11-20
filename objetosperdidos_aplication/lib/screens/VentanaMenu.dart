@@ -74,12 +74,13 @@ class _VentanaMenuState extends State<VentanaMenu> {
           ),
           const SizedBox(height: 30),
 
-          const BotonLogin(),
+          BotonLogin(
+            usuarioController: _usuarioController,
+            passwordController: _passwordController,
+          ),
           const SizedBox(height: 15),
           const BotonRegistro(),
           const SizedBox(height: 20),
-
-          // Divisor y botón final
           const Divisor(),
           const SizedBox(height: 20),
           const BotonContinuar(),
