@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:objetosperdidos_aplication/screens/VentanaMenu.dart';
+import 'package:objetosperdidos_aplication/services/verificar_sesion.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
 }
 
@@ -10,6 +11,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: VentanaMenu());
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: VerificarSesion(),
+    );
   }
 }
