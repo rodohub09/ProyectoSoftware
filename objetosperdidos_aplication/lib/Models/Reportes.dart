@@ -13,7 +13,7 @@ class Reportes {
   final String? ownerId; // matrícula o id del creador
   final bool ownerIsAdmin; // true si fue creado por admin
   bool recogido; // si el reporte fue declarado recogido
-
+  final DateTime createdAt;
   Reportes({
     required this.titulo,
     this.descripcion,
@@ -23,6 +23,7 @@ class Reportes {
     this.ownerId,
     this.ownerIsAdmin = false,
     this.recogido = false,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toJson() {
@@ -35,6 +36,7 @@ class Reportes {
       'ownerId': ownerId,
       'ownerIsAdmin': ownerIsAdmin,
       'recogido': recogido,
+      'fecha_creacion': createdAt.toIso8601String(),
     };
   }
 
@@ -48,6 +50,7 @@ class Reportes {
       ownerId: map['ownerId'],
       ownerIsAdmin: map['ownerIsAdmin'] == true,
       recogido: map['recogido'] == true,
+      createdAt: DateTime.parse(map['fecha_creacion'])
     );
   }
 
