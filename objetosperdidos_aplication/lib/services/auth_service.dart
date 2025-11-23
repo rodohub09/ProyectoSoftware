@@ -8,6 +8,7 @@ class AuthService {
   static const String _keyUserEmail = 'userEmail';
   static const String _keyUserPassword = 'userPassword';
   static const String _keyUserRut = 'userRut';
+  static const String _keyIsAdmin = 'isAdmin';
   static const String _keyUsuariosDB = 'usuariosDB';
 
   // Leer usuarios desde SharedPreferences
@@ -16,12 +17,12 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_keyUsuariosDB) ?? '{}';
       print('📖 JSON almacenado: $jsonString');
-      
+
       if (jsonString.isEmpty || jsonString == '{}') {
         print('⚠️ No hay usuarios registrados (primera vez)');
         return {};
       }
-      
+
       final usuarios = jsonDecode(jsonString) as Map<String, dynamic>;
       print('✓ Usuarios cargados: ${usuarios.length}');
       return usuarios;
@@ -54,6 +55,7 @@ class AuthService {
     required String userEmail,
     required String password,
     required String rut,
+    bool isAdmin = false,
   }) async {
     try {
       print('=== INICIO REGISTRO ===');
@@ -61,15 +63,15 @@ class AuthService {
       print('Nombre: $userName');
       print('Email: $userEmail');
       print('RUT: $rut');
-      
+
       Map<String, dynamic> usuarios = await _leerUsuarios();
-      
+
       // Verificar si la MATRÍCULA ya existe
       if (usuarios.containsKey(userId)) {
         print('✗ La matrícula $userId ya está registrada');
         return false;
       }
-      
+
       // Verificar si el userName ya existe (buscar en valores)
       for (var usuario in usuarios.values) {
         if (usuario['userName'] == userName) {
@@ -77,21 +79,22 @@ class AuthService {
           return false;
         }
       }
-      
+
       print('✓ Usuario disponible, registrando...');
-      
+
       usuarios[userId] = {
         'userName': userName,
         'password': password,
         'matricula': userId,
         'rut': rut,
         'correo': userEmail,
+        'isAdmin': isAdmin,
         'createdAt': DateTime.now().toIso8601String(),
       };
-      
+
       // Guardar en SharedPreferences
       bool guardado = await _guardarUsuarios(usuarios);
-      
+
       if (guardado) {
         await guardarSesion(
           userId: userId,
@@ -99,12 +102,13 @@ class AuthService {
           userEmail: userEmail,
           userPassword: password,
           userRut: rut,
+          isAdmin: isAdmin,
         );
-        
+
         print('✓ Usuario registrado y sesión iniciada');
         return true;
       }
-      
+
       return false;
     } catch (e) {
       print('✗ ERROR al registrar: $e');
@@ -114,21 +118,21 @@ class AuthService {
 
   // INICIAR SESIÓN - Busca por userName, valida password
   Future<Map<String, dynamic>> iniciarSesion({
-    required String usuario,    // Puede ser userName o matrícula
+    required String usuario, // Puede ser userName o matrícula
     required String password,
   }) async {
     try {
       print('=== INICIO LOGIN ===');
       print('Usuario ingresado: $usuario');
       print('Password: ${password.length} caracteres');
-      
+
       Map<String, dynamic> usuarios = await _leerUsuarios();
       print('Total usuarios en sistema: ${usuarios.length}');
-      
+
       // Buscar usuario (puede buscar por matrícula o userName)
       String? matriculaEncontrada;
       Map<String, dynamic>? datosUsuario;
-      
+
       // Primero buscar por matrícula (key directa)
       if (usuarios.containsKey(usuario)) {
         matriculaEncontrada = usuario;
@@ -145,25 +149,23 @@ class AuthService {
           }
         }
       }
-      
+
       if (datosUsuario == null) {
         print('✗ Usuario no encontrado');
-        return {
-          'success': false,
-          'message': 'Usuario no encontrado',
-        };
+        return {'success': false, 'message': 'Usuario no encontrado'};
       }
-      
+
       // Validar contraseña
       if (datosUsuario['password'] == password) {
         print('✓ Contraseña correcta');
-        
+
         await guardarSesion(
           userId: matriculaEncontrada!,
           userName: datosUsuario['userName'] ?? '',
           userEmail: datosUsuario['correo'] ?? '',
           userPassword: password,
           userRut: datosUsuario['rut'] ?? '',
+          isAdmin: (datosUsuario['isAdmin'] == true),
         );
 
         print('✓ Login exitoso');
@@ -174,17 +176,11 @@ class AuthService {
         };
       } else {
         print('✗ Contraseña incorrecta');
-        return {
-          'success': false,
-          'message': 'Contraseña incorrecta',
-        };
+        return {'success': false, 'message': 'Contraseña incorrecta'};
       }
     } catch (e) {
       print('✗ ERROR en login: $e');
-      return {
-        'success': false,
-        'message': 'Error al iniciar sesión: $e',
-      };
+      return {'success': false, 'message': 'Error al iniciar sesión: $e'};
     }
   }
 
@@ -195,6 +191,7 @@ class AuthService {
     required String userEmail,
     required String userPassword,
     required String userRut,
+    required bool isAdmin,
   }) async {
     print('--- Guardando sesión ---');
     final prefs = await SharedPreferences.getInstance();
@@ -204,6 +201,7 @@ class AuthService {
     await prefs.setString(_keyUserEmail, userEmail);
     await prefs.setString(_keyUserPassword, userPassword);
     await prefs.setString(_keyUserRut, userRut);
+    await prefs.setBool(_keyIsAdmin, isAdmin);
     print('✓ Sesión guardada');
   }
 
@@ -223,6 +221,51 @@ class AuthService {
       'userPassword': prefs.getString(_keyUserPassword),
       'userRut': prefs.getString(_keyUserRut),
     };
+  }
+
+  Future<bool> isCurrentUserAdmin() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyIsAdmin) ?? false;
+  }
+
+  Future<String?> getCurrentUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyUserId);
+  }
+
+  // Ensure there is at least one admin user. If none exists, create a default admin.
+  Future<void> ensureAdminExists() async {
+    try {
+      Map<String, dynamic> usuarios = await _leerUsuarios();
+      bool anyAdmin = false;
+      for (var u in usuarios.values) {
+        if (u['isAdmin'] == true) {
+          anyAdmin = true;
+          break;
+        }
+      }
+      if (!anyAdmin) {
+        // Create a default admin. Credentials: matricula=admin, password=admin123
+        const defaultAdminId = 'admin';
+        if (!usuarios.containsKey(defaultAdminId)) {
+          usuarios[defaultAdminId] = {
+            'userName': 'admin',
+            'password': 'admin123',
+            'matricula': defaultAdminId,
+            'rut': '',
+            'correo': '',
+            'isAdmin': true,
+            'createdAt': DateTime.now().toIso8601String(),
+          };
+          await _guardarUsuarios(usuarios);
+          print(
+            '⚠️ Se creó un admin por defecto (matrícula=admin, password=admin123). Cambia la contraseña en producción.',
+          );
+        }
+      }
+    } catch (e) {
+      print('✗ Error al asegurar admin: $e');
+    }
   }
 
   // Cerrar sesión

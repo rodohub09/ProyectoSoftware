@@ -9,22 +9,24 @@ class VerificarSesion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: AuthService().isLoggedIn(),
+      future: () async {
+        // Ensure an admin exists on startup (creates default admin if none)
+        await AuthService().ensureAdminExists();
+        return AuthService().isLoggedIn();
+      }(),
       builder: (context, snapshot) {
         // Tiene que esperar mientras verifica (si no va a petar)
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFD48957),
-              ),
+              child: CircularProgressIndicator(color: Color(0xFFD48957)),
             ),
           );
         }
         if (snapshot.data == true) {
           return const MenuReportes();
         }
-        return const VentanaMenu(); 
+        return const VentanaMenu();
       },
     );
   }
