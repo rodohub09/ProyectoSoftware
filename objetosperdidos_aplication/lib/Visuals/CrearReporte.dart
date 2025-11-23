@@ -181,6 +181,7 @@ class _CrearRegistroState extends State<CrearReporte> {
           return;
         }
         if (esFormularioValido()) {
+          final DateTime ahora = DateTime.now();
           final ownerId = _currentUserId;
           final tipo = isAdmin ? Tiporeporte.encontrado : Tiporeporte.perdido;
           final reporte = Reportes(
@@ -191,6 +192,7 @@ class _CrearRegistroState extends State<CrearReporte> {
             tipoReporte: tipo,
             ownerId: ownerId,
             ownerIsAdmin: isAdmin,
+            createdAt: ahora
           );
 
           if (isAdmin) {

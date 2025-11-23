@@ -8,7 +8,7 @@ class BotonRegistrarse extends StatelessWidget {
   final TextEditingController userEmailController;
   final TextEditingController userPasswordController;
   final TextEditingController userRutController;
-  
+
   const BotonRegistrarse({
     super.key,
     required this.userIdController,
@@ -17,11 +17,19 @@ class BotonRegistrarse extends StatelessWidget {
     required this.userPasswordController,
     required this.userRutController,
   });
+  bool esEmailValido(String email) {
+    String auxiliar = email;
+    int cantidadArrobas = email.split('@').length - 1;
+    if (cantidadArrobas > 1 || cantidadArrobas == 0||auxiliar.startsWith('@udec.cl')){ 
+      return false;
+    } 
+    return true;
+    }
 
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
-    
+
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -41,10 +49,30 @@ class BotonRegistrarse extends StatelessWidget {
           final userRut = userRutController.text.trim();
 
           // Validar que los campos no estén vacíos
-          if (userId.isEmpty || userName.isEmpty || userEmail.isEmpty|| userPassword.isEmpty||userRut.isEmpty) {
+          if (userId.isEmpty ||
+              userName.isEmpty ||
+              userEmail.isEmpty ||
+              userPassword.isEmpty ||
+              userRut.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Por favor completa todos los campos'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          } else if (!userEmail.endsWith('@udec.cl') || !esEmailValido(userEmail)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('El correo ingresado no es válido'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          } else if(!userId.startsWith('20') || userId.length != 10){
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('La matrícula ingresada no es válida'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -93,17 +121,19 @@ class BotonRegistrarse extends StatelessWidget {
 }
 
 void main() {
-  runApp(MaterialApp(
-    home: Scaffold(
-      body: Center(
-        child: BotonRegistrarse(
-          userIdController: TextEditingController(),
-          userNameController: TextEditingController(),
-          userEmailController: TextEditingController(),
-          userPasswordController: TextEditingController(),
-          userRutController: TextEditingController(),
+  runApp(
+    MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: BotonRegistrarse(
+            userIdController: TextEditingController(),
+            userNameController: TextEditingController(),
+            userEmailController: TextEditingController(),
+            userPasswordController: TextEditingController(),
+            userRutController: TextEditingController(),
+          ),
         ),
       ),
     ),
-  ));
+  );
 }
