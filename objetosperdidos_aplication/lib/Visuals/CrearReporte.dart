@@ -179,6 +179,7 @@ class _CrearRegistroState extends State<CrearReporte> {
           return;
         }
         if (esFormularioValido()) {
+          final DateTime ahora = DateTime.now();
           final ownerId = _currentUserId;
           // Tipo automático: admin = Encontrado, usuario = Perdido
           final tipoAuto = isAdmin
@@ -192,7 +193,7 @@ class _CrearRegistroState extends State<CrearReporte> {
             tipoReporte: tipoAuto,
             ownerId: ownerId,
             ownerIsAdmin: isAdmin,
-            creadoEn: DateTime.now(),
+            createdAt: ahora,
           );
 
           if (isAdmin) {

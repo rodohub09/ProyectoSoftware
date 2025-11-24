@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:objetosperdidos_aplication/Models/Reportes.dart';
+import 'package:objetosperdidos_aplication/Models/mapa_test.dart';
 import 'package:objetosperdidos_aplication/Utils/enumFiltros.dart';
 import 'package:objetosperdidos_aplication/Utils/tipoReporte.dart';
 import 'package:objetosperdidos_aplication/Visuals/CrearReporte.dart';
@@ -100,7 +101,7 @@ class _MenuReportesState extends State<MenuReportes> {
                 builder: (context) {
                   return AlertDialog(
                     title: const Text("Mapa Zonas de Control"),
-                    content: Image.asset('assets/image/mapaUDEC.png'),
+                    content: SizedBox(width: 2500, height: 1200, child: Mapa()),
                     actions: [
                       TextButton(
                         onPressed: () {
@@ -257,6 +258,16 @@ class _MenuReportesState extends State<MenuReportes> {
     );
   }
 
+  String formatearFecha(DateTime fecha) {
+    String dia = fecha.day.toString().padLeft(2, '0');
+    String mes = fecha.month.toString().padLeft(2, '0');
+    String anio = fecha.year.toString();
+    String hora = fecha.hour.toString().padLeft(2, '0');
+    String min = fecha.minute.toString().padLeft(2, '0');
+
+    return '$dia/$mes/$anio $hora:$min';
+  }
+
   Widget _buildCardReporte(Reportes reporte) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -396,7 +407,7 @@ class _MenuReportesState extends State<MenuReportes> {
               ),
               const SizedBox(height: 8.0),
               Text(
-                'Fecha: ${reporte.creadoEn.day}/${reporte.creadoEn.month}/${reporte.creadoEn.year} ${reporte.creadoEn.hour.toString().padLeft(2, '0')}:${reporte.creadoEn.minute.toString().padLeft(2, '0')}',
+                'Fecha: ${formatearFecha(reporte.createdAt)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

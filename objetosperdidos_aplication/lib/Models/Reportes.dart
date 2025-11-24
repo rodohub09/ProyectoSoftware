@@ -12,8 +12,8 @@ class Reportes {
   final Tiporeporte tipoReporte;
   final String? ownerId; // matrícula o id del creador
   final bool ownerIsAdmin; // true si fue creado por admin
-  bool recogido;
-  final DateTime creadoEn;
+  bool recogido; // si el reporte fue declarado recogido
+  final DateTime createdAt;
 
   Reportes({
     required this.titulo,
@@ -24,7 +24,7 @@ class Reportes {
     this.ownerId,
     this.ownerIsAdmin = false,
     this.recogido = false,
-    required this.creadoEn,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toJson() {
@@ -37,11 +37,17 @@ class Reportes {
       'ownerId': ownerId,
       'ownerIsAdmin': ownerIsAdmin,
       'recogido': recogido,
-      'creadoEn': creadoEn.toIso8601String(),
+      'fecha_creacion': createdAt.toIso8601String(),
     };
   }
 
   factory Reportes.fromJson(Map<String, dynamic> map) {
+    // Compatibilidad con formato antiguo (creadoEn) y nuevo (fecha_creacion)
+    final fechaString = map['fecha_creacion'] ?? map['creadoEn'];
+    final fecha = fechaString != null
+        ? DateTime.parse(fechaString as String)
+        : DateTime.now(); // Fallback si no existe ningún campo de fecha
+
     return Reportes(
       titulo: map['titulo'] ?? '',
       descripcion: map['descripcion'],
@@ -51,7 +57,7 @@ class Reportes {
       ownerId: map['ownerId'],
       ownerIsAdmin: map['ownerIsAdmin'] == true,
       recogido: map['recogido'] == true,
-      creadoEn: DateTime.parse(map['creadoEn'] as String),
+      createdAt: fecha,
     );
   }
 

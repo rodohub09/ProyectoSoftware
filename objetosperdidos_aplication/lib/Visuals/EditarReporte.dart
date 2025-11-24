@@ -192,7 +192,7 @@ class _EditarReporteState extends State<EditarReporte> {
             ownerId: widget.reporte.ownerId,
             ownerIsAdmin: widget.reporte.ownerIsAdmin,
             recogido: widget.reporte.recogido,
-            creadoEn: widget.reporte.creadoEn,
+            createdAt: widget.reporte.createdAt,
           );
 
           // Eliminar el reporte viejo y agregar el nuevo
