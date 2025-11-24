@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+
 class Mapa extends StatefulWidget {
   const Mapa({super.key});
 
@@ -9,7 +10,7 @@ class Mapa extends StatefulWidget {
   State<Mapa> createState() => _MapaState();
 }
 
-class _MapaState extends State<Mapa> { 
+class _MapaState extends State<Mapa> {
   final MapController controller = MapController();
   LatLng? _miUbicacion;
   void initState() {
@@ -32,6 +33,7 @@ class _MapaState extends State<Mapa> {
       print('Error: $e'); // Manejar el error (ej: mostrar SnackBar)
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -50,7 +52,14 @@ class _MapaState extends State<Mapa> {
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.example.app',
+              userAgentPackageName: 'com.udec.objetosperdidos',
+              // Añadir headers para cumplir política de OSM
+              additionalOptions: const {
+                'User-Agent':
+                    'ObjetosPerdidosUDEC/1.0 +https://github.com/rodohub09/ProyectoSoftware/tree/main/objetosperdidos_aplication',
+              },
+              maxZoom: 19,
+              minZoom: 10,
             ),
             MarkerLayer(
               markers: [
@@ -93,24 +102,24 @@ class _MapaState extends State<Mapa> {
                     -73.03210433088138,
                   ), // Cubo 4
                   width: 50,
-                  height: 50, 
+                  height: 50,
                   child: const Icon(
                     Icons.location_pin,
-                    color: Colors.blue, 
-                    size: 50, 
+                    color: Colors.blue,
+                    size: 50,
                   ),
                 ),
                 if (_miUbicacion != null)
-                Marker(
-                  point: _miUbicacion!,
-                  width: 50, 
-                  height: 50, 
-                  child: const Icon(
-                    Icons.person_pin_circle_outlined, 
-                    color: Colors.black, 
-                    size: 50, 
+                  Marker(
+                    point: _miUbicacion!,
+                    width: 50,
+                    height: 50,
+                    child: const Icon(
+                      Icons.person_pin_circle_outlined,
+                      color: Colors.black,
+                      size: 50,
+                    ),
                   ),
-                ),
               ],
             ),
           ],
@@ -152,7 +161,6 @@ class _MapaState extends State<Mapa> {
   }
 }
 
-
 Future<Position> determinarPosicion() async {
   bool servicioHabilitado;
   LocationPermission permiso;
@@ -179,8 +187,6 @@ Future<Position> determinarPosicion() async {
   // 3. ¡Si llegamos aquí, tenemos permiso! Obtenemos la ubicación
   return await Geolocator.getCurrentPosition();
 }
-
-
 
 void main() {
   runApp(const MaterialApp(home: Scaffold(body: Mapa())));

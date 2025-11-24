@@ -20,11 +20,13 @@ class BotonRegistrarse extends StatelessWidget {
   bool esEmailValido(String email) {
     String auxiliar = email;
     int cantidadArrobas = email.split('@').length - 1;
-    if (cantidadArrobas > 1 || cantidadArrobas == 0||auxiliar.startsWith('@udec.cl')){ 
+    if (cantidadArrobas > 1 ||
+        cantidadArrobas == 0 ||
+        auxiliar.startsWith('@udec.cl')) {
       return false;
-    } 
-    return true;
     }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +63,8 @@ class BotonRegistrarse extends StatelessWidget {
               ),
             );
             return;
-          } else if (!userEmail.endsWith('@udec.cl') || !esEmailValido(userEmail)) {
+          } else if (!userEmail.endsWith('@udec.cl') ||
+              !esEmailValido(userEmail)) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('El correo ingresado no es válido'),
@@ -69,7 +72,7 @@ class BotonRegistrarse extends StatelessWidget {
               ),
             );
             return;
-          } else if(!userId.startsWith('20') || userId.length != 10){
+          } else if (!userId.startsWith('20') || userId.length != 10) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('La matrícula ingresada no es válida'),
