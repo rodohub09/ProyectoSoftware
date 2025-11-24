@@ -12,7 +12,8 @@ class Reportes {
   final Tiporeporte tipoReporte;
   final String? ownerId; // matrícula o id del creador
   final bool ownerIsAdmin; // true si fue creado por admin
-  bool recogido; // si el reporte fue declarado recogido
+  bool recogido;
+  final DateTime creadoEn;
 
   Reportes({
     required this.titulo,
@@ -23,6 +24,7 @@ class Reportes {
     this.ownerId,
     this.ownerIsAdmin = false,
     this.recogido = false,
+    required this.creadoEn,
   });
 
   Map<String, dynamic> toJson() {
@@ -35,6 +37,7 @@ class Reportes {
       'ownerId': ownerId,
       'ownerIsAdmin': ownerIsAdmin,
       'recogido': recogido,
+      'creadoEn': creadoEn.toIso8601String(),
     };
   }
 
@@ -48,6 +51,7 @@ class Reportes {
       ownerId: map['ownerId'],
       ownerIsAdmin: map['ownerIsAdmin'] == true,
       recogido: map['recogido'] == true,
+      creadoEn: DateTime.parse(map['creadoEn'] as String),
     );
   }
 
@@ -112,6 +116,10 @@ class MatchManager {
     _matches.removeWhere((m) => m.userReport == userRep);
   }
 
+  void removeMatchPair(MatchPair pair) {
+    _matches.remove(pair);
+  }
+
   void _addMatch(MatchPair pair) {
     if (!_matches.contains(pair)) {
       _matches.add(pair);
@@ -123,9 +131,6 @@ class MatchManager {
   }
 
   bool _isMatch(Reportes adminRep, Reportes userRep) {
-    final titlesEqual =
-        adminRep.titulo.trim().toLowerCase() ==
-        userRep.titulo.trim().toLowerCase();
     final sameCategory =
         adminRep.categoria == userRep.categoria &&
         adminRep.subcategoria == userRep.subcategoria;
@@ -136,13 +141,15 @@ class MatchManager {
         userRep.tipoReporte == Tiporeporte.perdido &&
         adminRep.ownerIsAdmin == true &&
         userRep.ownerIsAdmin == false;
-    final match = titlesEqual && sameCategory && correctTypes;
+    final match = sameCategory && correctTypes;
     if (match) {
       print(
-        '✅ Coinciden: "${adminRep.titulo}" == "${userRep.titulo}" (categoria ${adminRep.categoria}, sub ${adminRep.subcategoria}, tipo ${adminRep.tipoReporte})',
+        '✅ Coinciden: categoria ${adminRep.categoria}, sub ${adminRep.subcategoria} (admin: "${adminRep.titulo}", usuario: "${userRep.titulo}")',
       );
     } else {
-      print('❌ No coinciden: "${adminRep.titulo}" vs "${userRep.titulo}"');
+      print(
+        '❌ No coinciden: admin="${adminRep.titulo}" vs usuario="${userRep.titulo}"',
+      );
     }
     return match;
   }
@@ -258,6 +265,21 @@ class ReportesManager {
   }
 
   List<MatchPair> getAllMatches() => _matchManager.getAllMatches();
+
+  // Marcar como recogido y eliminar ambos reportes de la pareja
+  void markMatchAsRecogido(MatchPair match) {
+    // Marcar el reporte admin como recogido
+    match.adminReport.recogido = true;
+    // Eliminar ambos reportes de las listas
+    _reportesAdmin.remove(match.adminReport);
+    _reportesUsuarios.remove(match.userReport);
+    // Eliminar la pareja de matches
+    _matchManager.removeMatchPair(match);
+    _saveToStorage();
+    NotificationService().notify(
+      'Objeto marcado como recogido y reportes eliminados',
+    );
+  }
 
   // Persistence
   static const String _keyReportesDB = 'reportesDB';

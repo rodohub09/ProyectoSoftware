@@ -59,10 +59,8 @@ class _CoincidenciasScreenState extends State<CoincidenciasScreen> {
     _loadMatches();
   }
 
-  void _markRecogido(Reportes r) {
-    r.recogido = true;
-    ReportesManager().updateReport(r);
-    NotificationService().notify('Reporte marcado como recogido');
+  void _markRecogido(MatchPair match) {
+    ReportesManager().markMatchAsRecogido(match);
     _loadMatches();
   }
 
@@ -92,17 +90,62 @@ class _CoincidenciasScreenState extends State<CoincidenciasScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          m.adminReport.titulo,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                m.adminReport.titulo,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            if (!widget.viewerIsAdmin &&
+                                m.adminReport.descripcion != null)
+                              IconButton(
+                                icon: const Icon(Icons.info_outline),
+                                tooltip: 'Ver descripción',
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text(m.adminReport.titulo),
+                                      content: SingleChildScrollView(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Text(
+                                              'Descripción del reporte encontrado:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              m.adminReport.descripcion ??
+                                                  'Sin descripción',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Cerrar'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          'Admin: ${m.adminReport.ownerId ?? 'admin'} - ${m.adminReport.descripcion ?? ''}',
-                        ),
+                        Text('Admin: ${m.adminReport.ownerId ?? 'admin'}'),
                         const SizedBox(height: 6),
                         Text('Usuario: ${m.userReport.ownerId ?? 'anon'}'),
                         const SizedBox(height: 6),
@@ -110,7 +153,9 @@ class _CoincidenciasScreenState extends State<CoincidenciasScreen> {
                           'Categoria: ${m.adminReport.categoria.label} - ${m.adminReport.subcategoria}',
                         ),
                         const SizedBox(height: 6),
-                        Text('Fecha coincidencia: ${m.matchedAt.toLocal()}'),
+                        Text(
+                          'Fecha coincidencia: ${m.matchedAt.day}/${m.matchedAt.month}/${m.matchedAt.year} ${m.matchedAt.hour.toString().padLeft(2, '0')}:${m.matchedAt.minute.toString().padLeft(2, '0')}',
+                        ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -128,7 +173,7 @@ class _CoincidenciasScreenState extends State<CoincidenciasScreen> {
                               ),
                               const SizedBox(width: 8),
                               ElevatedButton(
-                                onPressed: () => _markRecogido(m.adminReport),
+                                onPressed: () => _markRecogido(m),
                                 child: const Text('Marcar recogido'),
                               ),
                             ] else ...[

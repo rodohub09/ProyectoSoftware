@@ -1,99 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:objetosperdidos_aplication/Models/Reportes.dart';
 import 'package:objetosperdidos_aplication/Utils/enumFiltros.dart';
-import 'package:objetosperdidos_aplication/Utils/tipoReporte.dart';
 import 'package:objetosperdidos_aplication/services/auth_service.dart';
 
-class CrearReporte extends StatefulWidget {
-  const CrearReporte({super.key});
+class EditarReporte extends StatefulWidget {
+  final Reportes reporte;
+
+  const EditarReporte({super.key, required this.reporte});
 
   @override
-  State<CrearReporte> createState() => _CrearRegistroState();
+  State<EditarReporte> createState() => _EditarReporteState();
 }
 
-class _CrearRegistroState extends State<CrearReporte> {
+class _EditarReporteState extends State<EditarReporte> {
   Enumfiltros? _categoriaSeleccionada;
   String? _subcategoriaSeleccionada;
   final TextEditingController _tituloController = TextEditingController();
   final TextEditingController _descripcionController = TextEditingController();
   bool _isAdmin = false;
-  String? _currentUserId;
-  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _loadReportData();
   }
 
   Future<void> _loadUser() async {
     _isAdmin = await AuthService().isCurrentUserAdmin();
-    _currentUserId = await AuthService().getCurrentUserId();
-    _isLoggedIn = await AuthService().isLoggedIn();
+    setState(() {});
+  }
+
+  void _loadReportData() {
+    _tituloController.text = widget.reporte.titulo;
+    _descripcionController.text = widget.reporte.descripcion ?? '';
+    _categoriaSeleccionada = widget.reporte.categoria;
+    _subcategoriaSeleccionada = widget.reporte.subcategoria;
     setState(() {});
   }
 
   @override
   void dispose() {
+    _tituloController.dispose();
+    _descripcionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Crear Registro'), centerTitle: true),
+      appBar: AppBar(title: const Text('Editar Reporte'), centerTitle: true),
       body: _buildFormulario(),
     );
   }
 
   Widget _buildFormulario() {
     return Center(
-      child: Column(
-        children: [
-          SizedBox(height: 10),
-          Row(
-            children: [
-              SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  maxLength: 50,
-                  controller: _tituloController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Título del reporte',
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    maxLength: 50,
+                    controller: _tituloController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Título del reporte',
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: 10),
-            ],
-          ),
-          SizedBox(height: 10),
-          _buildSeleccionables(),
-          SizedBox(height: 10),
-          // Descripción solo editable si es admin
-          Row(
-            children: [
-              SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  maxLength: 200,
-                  controller: _descripcionController,
-                  enabled: _isAdmin,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: _isAdmin
-                        ? 'Descripción del objeto'
-                        : 'Descripción (solo admins pueden escribir)',
+                const SizedBox(width: 10),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _buildSeleccionables(),
+            const SizedBox(height: 10),
+            // Descripción solo editable si es admin
+            Row(
+              children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    maxLength: 200,
+                    controller: _descripcionController,
+                    enabled: _isAdmin,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: _isAdmin
+                          ? 'Descripción del objeto'
+                          : 'Descripción (solo admins pueden escribir)',
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: 10),
-            ],
-          ),
-          SizedBox(height: 10),
-          _buildBotonCrear(),
-          SizedBox(height: 10),
-        ],
+                const SizedBox(width: 10),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _buildBotonGuardar(),
+            const SizedBox(height: 10),
+          ],
+        ),
       ),
     );
   }
@@ -103,9 +113,9 @@ class _CrearRegistroState extends State<CrearReporte> {
       children: [
         Row(
           children: [
-            SizedBox(width: 10),
-            Text('Categoria:'),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
+            const Text('Categoria:'),
+            const SizedBox(width: 10),
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -126,16 +136,16 @@ class _CrearRegistroState extends State<CrearReporte> {
                 ),
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
           ],
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         if (_categoriaSeleccionada != null)
           Row(
             children: [
-              SizedBox(width: 10),
-              Text('Subcategoría:'),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
+              const Text('Subcategoría:'),
+              const SizedBox(width: 10),
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -159,49 +169,47 @@ class _CrearRegistroState extends State<CrearReporte> {
                   ),
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
             ],
           ),
       ],
     );
   }
 
-  Widget _buildBotonCrear() {
+  Widget _buildBotonGuardar() {
     return ElevatedButton(
       onPressed: () async {
-        final isAdmin = _isAdmin;
-        if (!_isLoggedIn) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Debes iniciar sesión para crear reportes'),
-            ),
-          );
-          return;
-        }
         if (esFormularioValido()) {
-          final ownerId = _currentUserId;
-          // Tipo automático: admin = Encontrado, usuario = Perdido
-          final tipoAuto = isAdmin
-              ? Tiporeporte.encontrado
-              : Tiporeporte.perdido;
-          final reporte = Reportes(
+          // Crear un nuevo reporte con los datos actualizados
+          final reporteActualizado = Reportes(
             titulo: _tituloController.text.trim(),
-            descripcion: isAdmin ? _descripcionController.text.trim() : null,
+            descripcion: _isAdmin
+                ? _descripcionController.text.trim()
+                : widget.reporte.descripcion,
             categoria: _categoriaSeleccionada!,
             subcategoria: _subcategoriaSeleccionada!,
-            tipoReporte: tipoAuto,
-            ownerId: ownerId,
-            ownerIsAdmin: isAdmin,
-            creadoEn: DateTime.now(),
+            tipoReporte: widget.reporte.tipoReporte,
+            ownerId: widget.reporte.ownerId,
+            ownerIsAdmin: widget.reporte.ownerIsAdmin,
+            recogido: widget.reporte.recogido,
+            creadoEn: widget.reporte.creadoEn,
           );
 
-          if (isAdmin) {
-            ReportesManager().addAdminReport(reporte);
+          // Eliminar el reporte viejo y agregar el nuevo
+          if (widget.reporte.ownerIsAdmin) {
+            ReportesManager().removeAdminReport(widget.reporte);
+            ReportesManager().addAdminReport(reporteActualizado);
           } else {
-            ReportesManager().addUserReport(reporte);
+            ReportesManager().removeUserReport(widget.reporte);
+            ReportesManager().addUserReport(reporteActualizado);
           }
 
-          Navigator.pop(context);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Reporte actualizado')),
+            );
+            Navigator.pop(context, true);
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -213,7 +221,7 @@ class _CrearRegistroState extends State<CrearReporte> {
           );
         }
       },
-      child: const Text('Crear Reporte'),
+      child: const Text('Guardar Cambios'),
     );
   }
 
@@ -226,7 +234,7 @@ class _CrearRegistroState extends State<CrearReporte> {
           categoriaOk &&
           _descripcionController.text.trim().isNotEmpty;
     }
-    // usuarios no deben proveer descripción, tipo es automático
+    // usuarios no deben proveer descripción
     return tituloOk && categoriaOk;
   }
 }
