@@ -24,6 +24,61 @@ class BotonRegistrarse extends StatelessWidget {
         cantidadArrobas == 0 ||
         auxiliar.startsWith('@udec.cl')) {
       return false;
+    } 
+    return true;
+  }
+
+  bool esRutValido(String rut){
+    int? puntos;
+    if(!rut.contains("-"))
+      return false;
+    if(rut.contains(".")){
+      if(rut.length<11)
+        return false;
+      puntos = 0;
+    }else{
+      if(rut.length<9)
+        return false;
+    }
+    List<String> digitosRut = rut.split("");
+    int nums = 0;
+    bool raya = false;
+    for (int j = 0; j < digitosRut.length; j++) {
+      int? i = int.tryParse(digitosRut[j]);
+      if(i == null){
+        if(digitosRut[j] == "." && puntos != null){
+          if (puntos > 2){
+            return false;
+          }
+          puntos++;
+          continue;
+        } else if((digitosRut[j] == "-") && (j == digitosRut.length-2)){
+          raya = true;  
+          continue;
+        }else if(raya && ((digitosRut[j] == "k") || (digitosRut[j] == "K")))
+          continue;
+        return false;
+      }
+      if(!raya){
+        nums *= 10;
+        nums += i;
+      }
+    }
+    if (nums>30000000 || nums < 1000000 || (puntos !=2 && rut.contains("."))){
+      return false;
+    }
+    return true;
+  }
+
+  bool esContrasenaValida(String contrasena){
+    if (contrasena.length < 8)
+      return false;
+
+    if(!contrasena.contains(RegExp(r'[0-9]')) || 
+      !contrasena.contains(RegExp(r'[A-Z]')) || 
+      !contrasena.contains(RegExp(r'[a-z]')) || 
+      !contrasena.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))){
+      return false;
     }
     return true;
   }
@@ -76,6 +131,26 @@ class BotonRegistrarse extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('La matrícula ingresada no es válida'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+          //Verificacion de rut.
+          if(!esRutValido(userRut)){
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('El RUT ingresado no es valido.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+
+          if(!esContrasenaValida(userPassword)){
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('La contraseña ingresada no es valida.'),
                 backgroundColor: Colors.red,
               ),
             );

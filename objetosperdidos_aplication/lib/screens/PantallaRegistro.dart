@@ -91,11 +91,14 @@ class _VentanaRegistroState extends State<VentanaRegistro> {
           ),
           const SizedBox(height: 20),
 
-          TextoCampo(
-            controller: _passwordController,
-            label: "Contraseña",
-            icon: Icons.lock_outline,
-            isPassword: true,
+          Tooltip(
+            message: "La contraseña debe tener como minimo 8 caracteres,\ncon letras mayusculas, minusculas, numeros \ny caracteres especiales",
+            child: TextoCampo(
+              controller: _passwordController,
+              label: "Contraseña",
+              icon: Icons.lock_outline,
+              isPassword: true,
+            ),
           ),
           const SizedBox(height: 30),
 
