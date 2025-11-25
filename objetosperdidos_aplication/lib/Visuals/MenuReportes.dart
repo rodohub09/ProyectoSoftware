@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:objetosperdidos_aplication/Models/Reportes.dart';
-import 'package:objetosperdidos_aplication/Models/mapa_test.dart';
+import 'package:objetosperdidos_aplication/Models/mapa.dart';
 import 'package:objetosperdidos_aplication/Utils/enumFiltros.dart';
 import 'package:objetosperdidos_aplication/Utils/tipoReporte.dart';
 import 'package:objetosperdidos_aplication/Visuals/CrearReporte.dart';

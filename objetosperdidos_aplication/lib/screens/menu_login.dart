@@ -28,14 +28,14 @@ class _MenuLoginState extends State<MenuLogin> {
       return;
     }
 
-    print('🔐 Intentando login...');
+    print('Intentando login...');
     final resultado = await _authService.iniciarSesion(
       usuario: usuario,
       password: password,
     );
 
     if (resultado['success'] == true) {
-      print('✅ Login exitoso, navegando...');
+      print('Login exitoso, navegando...');
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -43,7 +43,7 @@ class _MenuLoginState extends State<MenuLogin> {
         );
       }
     } else {
-      print('❌ Login fallido: ${resultado['message']}');
+      print(' Login fallido: ${resultado['message']}');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(resultado['message'] ?? 'Error al iniciar sesión')),

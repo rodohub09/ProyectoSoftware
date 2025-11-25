@@ -150,11 +150,11 @@ class MatchManager {
     final match = sameCategory && correctTypes;
     if (match) {
       print(
-        '✅ Coinciden: categoria ${adminRep.categoria}, sub ${adminRep.subcategoria} (admin: "${adminRep.titulo}", usuario: "${userRep.titulo}")',
+        'Coinciden: categoria ${adminRep.categoria}, sub ${adminRep.subcategoria} (admin: "${adminRep.titulo}", usuario: "${userRep.titulo}")',
       );
     } else {
       print(
-        '❌ No coinciden: admin="${adminRep.titulo}" vs usuario="${userRep.titulo}"',
+        'No coinciden: admin="${adminRep.titulo}" vs usuario="${userRep.titulo}"',
       );
     }
     return match;
@@ -298,9 +298,9 @@ class ReportesManager {
         'users': _reportesUsuarios.map((r) => r.toJson()).toList(),
       };
       await prefs.setString(_keyReportesDB, jsonEncode(data));
-      print('💾 Reportes guardados');
+      print(' Reportes guardados');
     } catch (e) {
-      print('✗ Error guardando reportes: $e');
+      print('Error guardando reportes: $e');
     }
   }
 
@@ -325,10 +325,10 @@ class ReportesManager {
         _matchManager.checkAndAddMatchesForAdmin(admin, _reportesUsuarios);
       }
       print(
-        '✓ Reportes cargados: ${_reportesAdmin.length} admins, ${_reportesUsuarios.length} users',
+        'Reportes cargados: ${_reportesAdmin.length} admins, ${_reportesUsuarios.length} users',
       );
     } catch (e) {
-      print('✗ Error cargando reportes: $e');
+      print('Error cargando reportes: $e');
     }
   }
 
