@@ -30,7 +30,7 @@ class _MapaState extends State<Mapa> {
         _miUbicacion = nuevaPosicion;
       });
     } catch (e) {
-      print('Error: $e'); // Manejar el error (ej: mostrar SnackBar)
+      print('Error: $e');
     }
   }
 
@@ -44,16 +44,15 @@ class _MapaState extends State<Mapa> {
             initialCenter: LatLng(-36.8302959, -73.0345925),
             initialZoom: 17,
             initialRotation: -45.0,
-            // 👇 Habilitar zoom y gestos (sirve para Android/Web/Windows)
             interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all, // zoom, drag, scroll, etc.
+              flags: InteractiveFlag.all,
             ),
           ),
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.udec.objetosperdidos',
-              // Añadir headers para cumplir política de OSM
+
               additionalOptions: const {
                 'User-Agent':
                     'ObjetosPerdidosUDEC/1.0 +https://github.com/rodohub09/ProyectoSoftware/tree/main/objetosperdidos_aplication',
@@ -68,32 +67,77 @@ class _MapaState extends State<Mapa> {
                     -36.826537707893756,
                     -73.036912958654,
                   ), // Casa del deporte
-                  width: 50, // Ancho del área del marcador
-                  height: 50, // Alto del área del marcador
-                  child: const Icon(
-                    Icons.location_pin, // El icono de bandera de Flutter
-                    color: Colors.yellow, // Color rojo
-                    size: 50, // Tamaño del icono
+                  width: 50,
+                  height: 50,
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: Image.asset(
+                              'assets/image/casa_del_deporte.jpg',
+                              fit: BoxFit.fill,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: const Icon(
+                      Icons.location_pin,
+                      color: Colors.purple,
+                      size: 50,
+                    ),
                   ),
                 ),
                 Marker(
                   point: LatLng(-36.8301516, -73.0366847), // Sistemas
-                  width: 50, // Ancho del área del marcador
-                  height: 50, // Alto del área del marcador
-                  child: const Icon(
-                    Icons.location_pin, // El icono de bandera de Flutter
-                    color: Colors.green, // Color rojo
-                    size: 50, // Tamaño del icono
+                  width: 50,
+                  height: 50,
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: Image.asset(
+                              'assets/image/sistemas.jpg',
+                              fit: BoxFit.fill,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: const Icon(
+                      Icons.location_pin,
+                      color: Colors.green,
+                      size: 50,
+                    ),
                   ),
                 ),
                 Marker(
                   point: LatLng(-36.8319057, -73.0351986), // Central
-                  width: 50, // Ancho del área del marcador
-                  height: 50, // Alto del área del marcador
-                  child: const Icon(
-                    Icons.location_pin, // El icono de bandera de Flutter
-                    color: Colors.red, // Color rojo
-                    size: 50, // Tamaño del icono
+                  width: 50,
+                  height: 50,
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: Image.asset(
+                              'assets/image/central.jpg',
+                              fit: BoxFit.fill,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: const Icon(
+                      Icons.location_pin,
+                      color: Colors.red,
+                      size: 50,
+                    ),
                   ),
                 ),
                 Marker(
@@ -103,10 +147,25 @@ class _MapaState extends State<Mapa> {
                   ), // Cubo 4
                   width: 50,
                   height: 50,
-                  child: const Icon(
-                    Icons.location_pin,
-                    color: Colors.blue,
-                    size: 50,
+                  child: GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: Image.asset(
+                              'assets/image/cubo4.jpg',
+                              fit: BoxFit.fill,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: const Icon(
+                      Icons.location_pin,
+                      color: Colors.blue,
+                      size: 50,
+                    ),
                   ),
                 ),
                 if (_miUbicacion != null)
