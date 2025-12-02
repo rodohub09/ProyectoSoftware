@@ -69,7 +69,6 @@ void main() {
     // 6. Verificar SnackBar (Solo pump() para ver el mensaje efímero)
     await tester.pump(); 
     
-    // Si esto falla, imprimirá en consola qué mensaje salió en su lugar (ej: error de validación)
     if (find.text('Por favor complete todos los campos requeridos.').evaluate().isNotEmpty) {
       fail("El test falló porque el formulario se consideró inválido.");
     }
