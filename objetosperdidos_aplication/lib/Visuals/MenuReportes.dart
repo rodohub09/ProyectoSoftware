@@ -18,14 +18,16 @@ class MenuReportes extends StatefulWidget {
 }
 
 class _MenuReportesState extends State<MenuReportes> {
-  final List<Reportes> listaReportes = [];
   Enumfiltros? _filtroSeleccionado;
+  String? _subfiltroSeleccionado; // Nuevo estado para subfiltros
   final TextEditingController _controller = TextEditingController();
+  
   bool _isAdmin = false;
   String? _viewerId;
   bool _showUserReportsForAdmin = true;
   Stream<String>? _notifStream;
   bool _isLoggedIn = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -38,15 +40,20 @@ class _MenuReportesState extends State<MenuReportes> {
     _viewerId = await AuthService().getCurrentUserId();
     _isLoggedIn = await AuthService().isLoggedIn();
     _notifStream = NotificationService().stream;
+    
     _notifStream?.listen((msg) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(msg)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            behavior: SnackBarBehavior.floating,
+          )
+        );
         setState(() {});
       }
     });
-    setState(() {});
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -58,225 +65,311 @@ class _MenuReportesState extends State<MenuReportes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Menu de Reportes'),
-        actions: [
-          if (_isLoggedIn) ...[
-            IconButton(
-              tooltip: 'Coincidencias',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CoincidenciasScreen(
-                      viewerId: _viewerId,
-                      viewerIsAdmin: _isAdmin,
+        title: const Text('Tablero de Reportes', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        actions: _buildAppBarActions(),
+      ),
+      // Floating Action Button para crear reporte (UX más estándar)
+      floatingActionButton: _isLoggedIn 
+        ? FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CrearReporte()),
+              ).then((_) => setState(() {}));
+            },
+            label: const Text('Nuevo Reporte'),
+            icon: const Icon(Icons.add),
+          ) 
+        : null,
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator()) 
+        : Column(
+            children: [
+              _buildSearchAndFilters(),
+              if (_isAdmin) _buildAdminToggle(),
+              Expanded(child: _buildReportList()),
+            ],
+          ),
+    );
+  }
+
+  List<Widget> _buildAppBarActions() {
+    return [
+      IconButton(
+        tooltip: 'Puntos de Entrega',
+        icon: const Icon(Icons.map_outlined),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              insetPadding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // Se ajusta al contenido
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // --- Encabezado y Mensaje ---
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Puntos de Entrega',
+                              style: TextStyle(
+                                fontSize: 20, 
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.pop(context),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Acércate a las zonas marcadas en el mapa para entregar objetos encontrados o retirar los tuyos.',
+                          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-              icon: const Icon(Icons.link),
-            ),
-            IconButton(
-              tooltip: 'Cerrar sesión',
-              onPressed: () async {
-                await AuthService().logout();
-                if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const VentanaMenu(),
+                  
+                  // --- Mapa ---
+                  SizedBox(
+                    height: 500, // Altura fija para el mapa
+                    width: double.maxFinite,
+                    child: ClipRRect(
+                      // Redondeamos solo las esquinas inferiores
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                      child: const Mapa(),
                     ),
-                    (route) => false,
-                  );
-                }
-              },
-              icon: const Icon(Icons.logout),
-            ),
-          ],
-          ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text("Mapa Zonas de Control"),
-                    content: SizedBox(width: 2500, height: 1200, child: Mapa()),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text("Cerrar"),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text("Zonas de control"),
-          ),
-        ],
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            _buildBuscaryFiltrar(),
-            SizedBox(height: 10),
-            Expanded(child: _buildReportList()),
-            SizedBox(height: 10),
-            if (_isAdmin)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Mostrar reportes de usuarios:'),
-                  Switch(
-                    value: _showUserReportsForAdmin,
-                    onChanged: (v) =>
-                        setState(() => _showUserReportsForAdmin = v),
                   ),
                 ],
               ),
-            if (_isLoggedIn)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CrearReporte(),
-                    ),
-                  ).then((_) => setState(() {}));
-                },
-                child: Text('Crear Nuevo Reporte'),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Inicia sesión para crear reportes'),
-                      ),
-                    );
-                  },
-                  child: const Text('Inicia sesión para crear reportes'),
+            ),
+          );
+        },
+      ),
+      if (_isLoggedIn) ...[
+        IconButton(
+          tooltip: 'Coincidencias',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CoincidenciasScreen(
+                  viewerId: _viewerId,
+                  viewerIsAdmin: _isAdmin,
                 ),
               ),
-          ],
+            );
+          },
+          icon: const Icon(Icons.link),
         ),
+        IconButton(
+          tooltip: 'Cerrar sesión',
+          onPressed: () async {
+            await AuthService().logout();
+            if (mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const VentanaMenu()),
+                (route) => false,
+              );
+            }
+          },
+          icon: const Icon(Icons.logout, color: Colors.redAccent),
+        ),
+      ],
+    ];
+  }
+
+  Widget _buildSearchAndFilters() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Barra de búsqueda
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              hintText: "Buscar objeto...",
+              prefixIcon: const Icon(Icons.search),
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              filled: true,
+              fillColor: Colors.grey[100],
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            onChanged: (value) => setState(() {}),
+          ),
+          const SizedBox(height: 15),
+          
+          // Título Filtros
+          const Text(
+            "Filtrar por Categoría",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+
+          // Chips de Categorías
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              spacing: 8.0,
+              children: Enumfiltros.values.map((filtro) {
+                final isSelected = _filtroSeleccionado == filtro;
+                return ChoiceChip(
+                  label: Text(filtro.label),
+                  selected: isSelected,
+                  selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                  labelStyle: TextStyle(
+                    color: isSelected ? Theme.of(context).primaryColor : Colors.black87,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  onSelected: (selected) {
+                    setState(() {
+                      // Al cambiar categoría, reseteamos el subfiltro
+                      _filtroSeleccionado = selected ? filtro : null;
+                      _subfiltroSeleccionado = null;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+
+          // Subfiltros (Animados)
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            child: _filtroSeleccionado != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Especificar Tipo",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Wrap(
+                        spacing: 8.0,
+                        children: (subfiltros[_filtroSeleccionado] ?? []).map((sub) {
+                          final isSelected = _subfiltroSeleccionado == sub;
+                          return FilterChip(
+                            label: Text(sub),
+                            selected: isSelected,
+                            checkmarkColor: Colors.white,
+                            selectedColor: Colors.blueAccent,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                            ),
+                            backgroundColor: Colors.grey[100],
+                            onSelected: (selected) {
+                              setState(() {
+                                _subfiltroSeleccionado = selected ? sub : null;
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildBuscaryFiltrar() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              hintText: "Busca un reporte por coincidencia de nombre",
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (value) => setState(() {}),
+  Widget _buildAdminToggle() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          const Text('Ver reportes de usuarios', style: TextStyle(fontSize: 12)),
+          Switch(
+            value: _showUserReportsForAdmin,
+            activeColor: Colors.green,
+            onChanged: (v) => setState(() => _showUserReportsForAdmin = v),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: ExpansionTile(
-            collapsedBackgroundColor: const Color.fromARGB(255, 255, 253, 118),
-            backgroundColor: const Color.fromARGB(255, 255, 253, 118),
-            title: Text(
-              'Filtrar por tipo de objeto:',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            collapsedShape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.shade300),
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey.shade300),
-            ),
-            childrenPadding: const EdgeInsets.all(8.0),
-            children: [
-              Wrap(
-                spacing: 8.0,
-                runSpacing: 8.0,
-                children: Enumfiltros.values.map((filtro) {
-                  return FilterChip(
-                    label: Text(
-                      filtro.label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    selected: _filtroSeleccionado == filtro,
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.lightBlue,
-                    checkmarkColor: const Color.fromARGB(255, 10, 0, 98),
-                    onSelected: (selected) {
-                      setState(() {
-                        _filtroSeleccionado = selected ? filtro : null;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildReportList() {
     final listaReportes = _aplicarFiltros();
-    return NotificationListener<ScrollNotification>(
-      onNotification: (scrollInfo) {
-        setState(() {});
-        return true;
+
+    if (listaReportes.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 10),
+            Text(
+              "No se encontraron reportes",
+              style: TextStyle(color: Colors.grey[500], fontSize: 16),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: listaReportes.length,
+      itemBuilder: (context, index) {
+        return _buildCardReporte(listaReportes[index]);
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-        itemCount: listaReportes.length,
-        itemBuilder: (context, index) {
-          final reporte = listaReportes[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: _buildCardReporte(reporte),
-          );
-        },
-      ),
     );
   }
 
-  String formatearFecha(DateTime fecha) {
-    String dia = fecha.day.toString().padLeft(2, '0');
-    String mes = fecha.month.toString().padLeft(2, '0');
-    String anio = fecha.year.toString();
-    String hora = fecha.hour.toString().padLeft(2, '0');
-    String min = fecha.minute.toString().padLeft(2, '0');
-
-    return '$dia/$mes/$anio $hora:$min';
-  }
-
   Widget _buildCardReporte(Reportes reporte) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Card(
-        color: reporte.tipoReporte == Tiporeporte.perdido
-            ? Colors.orangeAccent.shade100
-            : Colors.blueAccent.shade100,
-        elevation: 4.0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    final isPerdido = reporte.tipoReporte == Tiporeporte.perdido;
+    final colorBase = isPerdido ? Colors.orange : Colors.green;
+    
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          // Opcional: Expandir detalles al tocar la tarjeta entera
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -285,136 +378,155 @@ class _MenuReportesState extends State<MenuReportes> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Icono indicador
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: colorBase.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      isPerdido ? Icons.search : Icons.check_circle,
+                      color: colorBase,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  // Título y Subtítulo
                   Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reporte.titulo,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${reporte.categoria.label} • ${reporte.subcategoria}',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildPopupMenu(reporte),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Footer de la tarjeta
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isPerdido ? Colors.orange[50] : Colors.green[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: colorBase.withOpacity(0.3)),
+                    ),
                     child: Text(
-                      reporte.titulo,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      isPerdido ? "PERDIDO" : "ENCONTRADO",
+                      style: TextStyle(
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
+                        color: colorBase,
                       ),
                     ),
                   ),
-                  PopupMenuButton<String>(
-                    onSelected: (value) async {
-                      if (value == 'eliminar') {
-                        // Only admin or owner can delete
-                        final isAdmin = _isAdmin;
-                        if (isAdmin || reporte.ownerId == _viewerId) {
-                          if (reporte.ownerIsAdmin) {
-                            ReportesManager().removeAdminReport(reporte);
-                            NotificationService().notify(
-                              'Reporte admin eliminado',
-                            );
-                          } else {
-                            ReportesManager().removeUserReport(reporte);
-                            NotificationService().notify(
-                              'Reporte usuario eliminado',
-                            );
-                          }
-                          setState(() {});
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'No tienes permiso para eliminar este reporte',
-                              ),
-                            ),
-                          );
-                        }
-                      } else if (value == 'editar') {
-                        // Edit report - only owner can edit
-                        if (reporte.ownerId == _viewerId) {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  EditarReporte(reporte: reporte),
-                            ),
-                          );
-                          if (result == true && mounted) {
-                            setState(() {});
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Solo puedes editar tus propios reportes',
-                              ),
-                            ),
-                          );
-                        }
-                      } else if (value == 'ver_descripcion') {
-                        // Show description dialog
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text(reporte.titulo),
-                            content: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    'Descripción:',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    reporte.descripcion ?? 'Sin descripción',
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cerrar'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                    itemBuilder: (context) {
-                      final canDelete =
-                          _isAdmin || reporte.ownerId == _viewerId;
-                      final canEdit = reporte.ownerId == _viewerId;
-                      return [
-                        if (reporte.ownerIsAdmin && reporte.descripcion != null)
-                          PopupMenuItem(
-                            value: 'ver_descripcion',
-                            child: const Text('Ver descripción'),
-                          ),
-                        if (canEdit)
-                          PopupMenuItem(
-                            value: 'editar',
-                            child: const Text('Editar'),
-                          ),
-                        PopupMenuItem(
-                          value: 'eliminar',
-                          child: Text(canDelete ? 'Eliminar' : 'No disponible'),
-                        ),
-                      ];
-                    },
+                  Text(
+                    formatearFecha(reporte.createdAt),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8.0),
-              Text(
-                reporte.categoria.label,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 8.0),
-              Text(
-                'Fecha: ${formatearFecha(reporte.createdAt)}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              )
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildPopupMenu(Reportes reporte) {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, color: Colors.grey[400]),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (value) => _handleMenuAction(value, reporte),
+      itemBuilder: (context) {
+        final canDelete = _isAdmin || reporte.ownerId == _viewerId;
+        final canEdit = reporte.ownerId == _viewerId;
+        
+        return [
+          if (reporte.descripcion != null && reporte.descripcion!.isNotEmpty)
+            const PopupMenuItem(
+              value: 'ver_descripcion',
+              child: Row(
+                children: [Icon(Icons.info_outline, size: 20), SizedBox(width: 10), Text('Detalles')],
+              ),
+            ),
+          if (canEdit)
+            const PopupMenuItem(
+              value: 'editar',
+              child: Row(
+                children: [Icon(Icons.edit, size: 20), SizedBox(width: 10), Text('Editar')],
+              ),
+            ),
+          PopupMenuItem(
+            value: 'eliminar',
+            enabled: canDelete,
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, size: 20, color: canDelete ? Colors.red : Colors.grey),
+                const SizedBox(width: 10),
+                Text('Eliminar', style: TextStyle(color: canDelete ? Colors.red : Colors.grey)),
+              ],
+            ),
+          ),
+        ];
+      },
+    );
+  }
+
+  // Lógica de acciones del menú extraída para limpieza
+  void _handleMenuAction(String value, Reportes reporte) async {
+    if (value == 'eliminar') {
+      final isAdmin = _isAdmin;
+      if (isAdmin || reporte.ownerId == _viewerId) {
+        if (reporte.ownerIsAdmin) {
+          ReportesManager().removeAdminReport(reporte);
+        } else {
+          ReportesManager().removeUserReport(reporte);
+        }
+        setState(() {});
+      }
+    } else if (value == 'editar') {
+       final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => EditarReporte(reporte: reporte)),
+      );
+      if (result == true && mounted) setState(() {});
+    } else if (value == 'ver_descripcion') {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(reporte.titulo),
+          content: Text(reporte.descripcion ?? ''),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar'))
+          ],
+        ),
+      );
+    }
+  }
+
+  String formatearFecha(DateTime fecha) {
+    String dia = fecha.day.toString().padLeft(2, '0');
+    String mes = fecha.month.toString().padLeft(2, '0');
+    String hora = fecha.hour.toString().padLeft(2, '0');
+    String min = fecha.minute.toString().padLeft(2, '0');
+    return '$dia/$mes ${fecha.year} • $hora:$min';
   }
 
   List<Reportes> _aplicarFiltros() {
@@ -425,18 +537,19 @@ class _MenuReportesState extends State<MenuReportes> {
       adminWantsToSeeUserReports: _showUserReportsForAdmin,
     );
 
-    // Filtra por tipos seleccionados (en inglés)
+    // 1. Filtro Categoría
     if (_filtroSeleccionado != null) {
-      reportes = reportes
-          .where((reporte) => reporte.categoria == _filtroSeleccionado)
-          .toList();
+      reportes = reportes.where((r) => r.categoria == _filtroSeleccionado).toList();
+      
+      // 2. Filtro Subcategoría (solo si hay categoría seleccionada)
+      if (_subfiltroSeleccionado != null) {
+         reportes = reportes.where((r) => r.subcategoria == _subfiltroSeleccionado).toList();
+      }
     }
 
-    // Filtra por nombre o id si hay texto
+    // 3. Filtro Búsqueda Texto
     if (query.isNotEmpty) {
-      reportes = reportes
-          .where((reporte) => reporte.titulo.toLowerCase().contains(query))
-          .toList();
+      reportes = reportes.where((r) => r.titulo.toLowerCase().contains(query)).toList();
     }
 
     return reportes;

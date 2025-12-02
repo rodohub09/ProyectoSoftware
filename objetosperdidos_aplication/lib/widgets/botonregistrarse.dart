@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:objetosperdidos_aplication/screens/VentanaMenu.dart';
 import 'package:objetosperdidos_aplication/services/auth_service.dart';
 
 class BotonRegistrarse extends StatelessWidget {
@@ -168,12 +167,7 @@ class BotonRegistrarse extends StatelessWidget {
 
           if (registroExitoso) {
             // Navegar al menú
-            if (context.mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const VentanaMenu()),
-              );
-            }
+            Navigator.pop(context); // Cerrar la pantalla de registro
           } else {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
