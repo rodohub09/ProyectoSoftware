@@ -5,7 +5,15 @@ import 'package:objetosperdidos_aplication/Utils/tipoReporte.dart';
 import 'package:objetosperdidos_aplication/services/auth_service.dart';
 
 class CrearReporte extends StatefulWidget {
-  const CrearReporte({super.key});
+  // 1. Añadimos los servicios como parámetros opcionales
+  final AuthService? authService;
+  final ReportesManager? reportesManager;
+
+  const CrearReporte({
+    super.key, 
+    this.authService,
+    this.reportesManager,
+  });
 
   @override
   State<CrearReporte> createState() => _CrearRegistroState();
@@ -20,18 +28,26 @@ class _CrearRegistroState extends State<CrearReporte> {
   bool _isAdmin = false;
   String? _currentUserId;
   bool _isLoggedIn = false;
-  bool _isLoading = true; // Para mostrar carga mientras se obtienen datos del user
+  bool _isLoading = true;
+
+  // 2. Variables locales para los servicios
+  late final AuthService _authService;
+  late final ReportesManager _reportesManager;
 
   @override
   void initState() {
     super.initState();
+    _authService = widget.authService ?? AuthService();
+    _reportesManager = widget.reportesManager ?? ReportesManager();
+    
     _loadUser();
   }
 
   Future<void> _loadUser() async {
-    _isAdmin = await AuthService().isCurrentUserAdmin();
-    _currentUserId = await AuthService().getCurrentUserId();
-    _isLoggedIn = await AuthService().isLoggedIn();
+    _isAdmin = await _authService.isCurrentUserAdmin();
+    _currentUserId = await _authService.getCurrentUserId();
+    _isLoggedIn = await _authService.isLoggedIn();
+    
     if (mounted) {
       setState(() {
         _isLoading = false;

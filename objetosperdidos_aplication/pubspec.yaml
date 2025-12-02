@@ -13,6 +13,7 @@ dependencies:
   flutter_map: ^7.0.0  
   latlong2: ^0.9.1
   geolocator: ^13.0.0
+  mocktail: ^1.0.0
 
 dev_dependencies:
   flutter_test:
